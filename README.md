@@ -45,7 +45,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $primary-color: #007bff;
 $secondary-color: #6c757d;
 $grid-columns: 12;
@@ -76,7 +76,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 @mixin button-styles($bg-color) {
   background-color: $bg-color;
   padding: 10px 15px;
@@ -111,7 +111,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 body {
   font-family: 'Arial', sans-serif;
   line-height: 1.6;
@@ -153,7 +153,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $primary-color: #007bff;
 $secondary-color: #6c757d;
 
@@ -191,7 +191,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $grid-columns: 12;
 
 @for $i from 1 through 12 {
@@ -222,7 +222,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $colors: ("primary": #007bff, "secondary": #6c757d, "success": #28a745, "danger": #dc3545);
 
 @each $name, $color in $colors {
@@ -253,7 +253,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $base-font-size: 16;
 $i: 6;
 
@@ -283,7 +283,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $breakpoints: ("sm": 576px, "md": 768px, "lg": 992px, "xl": 1200px);
 
 @each $name, $width in $breakpoints {
@@ -318,7 +318,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 $theme: light;
 
 @if $theme == 'light' {
@@ -362,7 +362,7 @@ puts renderer.to_sass
 
 Output:
 
-```sass
+```scss
 nav {
   ul {
     margin: 0;
