@@ -12,44 +12,379 @@ gem 'ruby2sass'
 
 And then execute:
 
-    $ bundle install
+```
+$ bundle install
+```
 
 Or install it yourself as:
 
-    $ gem install ruby2sass
+```
+$ gem install ruby2sass
+```
 
 ## Usage 🔨
 
-Here's a basic example of how to use Ruby2sass:
+Here's a comprehensive example showcasing various features of Ruby2sass, along with the generated SASS output for each block:
 
 ```ruby
 require 'ruby2sass'
 
 renderer = Ruby2sass::Renderer.new do
+  # Variables
+  primary_color = v('primary-color', '#007bff')
+  secondary_color = v('secondary-color', '#6c757d')
+  grid_columns = v('grid-columns', 12)
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$grid-columns: 12;
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Mixins
+  mixin 'button-styles', '$bg-color' do
+    background_color '$bg-color'
+    padding '10px 15px'
+    border_radius '5px'
+    transition 'background-color 0.3s ease'
+  end
+
+  # Functions
+  function 'darken', '$color, $amount' do
+    raw "@return darken($color, $amount);\n"
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+@mixin button-styles($bg-color) {
+  background-color: $bg-color;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+@function darken($color, $amount) {
+@return darken($color, $amount);
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Base styles
+  s('body') do
+    font_family "'Arial', sans-serif"
+    line_height '1.6'
+    color '#333'
+  end
+
+  # Container
   s('.container') do
-    width '100%'
     max_width '1200px'
     margin '0 auto'
+    padding '0 15px'
+  end
+end
 
-    s('&__header') do
-      background_color '#f0f0f0'
-      padding '20px'
+puts renderer.to_sass
+```
 
-      s('h1') do
-        font_size '24px'
-        color '#333'
+Output:
+
+```sass
+body {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  primary_color = v('primary-color', '#007bff')
+  secondary_color = v('secondary-color', '#6c757d')
+
+  # Buttons
+  s('.button') do |btn|
+    include 'button-styles', primary_color
+
+    btn.hover do
+      background_color "darken(#{primary_color}, 10%)"
+    end
+  end
+
+  s('.button-secondary') do |btn|
+    include 'button-styles', secondary_color
+
+    btn.hover do
+      background_color "darken(#{secondary_color}, 10%)"
+    end
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+
+.button {
+  @include button-styles(#007bff);
+  &:hover {
+    background-color: darken(#007bff, 10%);
+  }
+}
+
+.button-secondary {
+  @include button-styles(#6c757d);
+  &:hover {
+    background-color: darken(#6c757d, 10%);
+  }
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  grid_columns = v('grid-columns', 12)
+
+  # Grid system using for loop
+  for_loop 'i', from: 1, to: grid_columns do
+    s(".col-\#{$i}") do
+      width "calc(100% / #{grid_columns} * \#{$i})"
+      float 'left'
+      padding '0 15px'
+    end
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$grid-columns: 12;
+
+@for $i from 1 through 12 {
+  .col-#{$i} {
+    width: calc(100% / 12 * #{$i});
+    float: left;
+    padding: 0 15px;
+  }
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Color palette using each loop
+  colors = v('colors', '("primary": #007bff, "secondary": #6c757d, "success": #28a745, "danger": #dc3545)')
+  each_loop 'name, color', colors do
+    s(".\#{$name}-bg") do
+      background_color '$color'
+    end
+    s(".\#{$name}-text") do
+      color '$color'
+    end
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$colors: ("primary": #007bff, "secondary": #6c757d, "success": #28a745, "danger": #dc3545);
+
+@each $name, $color in $colors {
+  .#{$name}-bg {
+    background-color: $color;
+  }
+  .#{$name}-text {
+    color: $color;
+  }
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Responsive font sizes using while loop
+  base_font = v('base-font-size', 16)
+  i = v('i', 6)
+  while_loop "#{i} > 0" do
+    s("h\#{$i}") do
+      font_size "#{base_font} + \#{$i}px"
+    end
+    raw "#{i} = #{i} - 1;\n"
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$base-font-size: 16;
+$i: 6;
+
+@while $i > 0 {
+  h#{$i} {
+    font-size: 16 + #{$i}px;
+  }
+$i: $i - 1;
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Media queries
+  breakpoints = v('breakpoints', '("sm": 576px, "md": 768px, "lg": 992px, "xl": 1200px)')
+  each_loop 'name, width', breakpoints do
+    media "screen and (min-width: \#{$width})" do
+      s('.container') do
+        max_width '$width'
       end
     end
   end
 end
 
 puts renderer.to_sass
-puts renderer.to_css
 ```
+
+Output:
+
+```sass
+$breakpoints: ("sm": 576px, "md": 768px, "lg": 992px, "xl": 1200px);
+
+@each $name, $width in $breakpoints {
+  @media screen and (min-width: #{$width}) {
+    .container {
+      max-width: $width;
+    }
+  }
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Theme switching with if-else
+  theme = v('theme', 'light')
+  if_statement "#{theme} == 'light'" do
+    s('body') do
+      background_color '#fff'
+      color '#333'
+    end
+  end
+  else_statement do
+    s('body') do
+      background_color '#333'
+      color '#fff'
+    end
+  end
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+$theme: light;
+
+@if $theme == 'light' {
+  body {
+    background-color: #fff;
+    color: #333;
+  }
+}
+@else {
+  body {
+    background-color: #333;
+    color: #fff;
+  }
+}
+```
+
+```ruby
+renderer = Ruby2sass::Renderer.new do
+  # Using raw SASS for complex selectors
+  raw <<~SCSS
+    nav {
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li { display: inline-block; }
+
+        a {
+          display: block;
+          padding: 6px 12px;
+          text-decoration: none;
+        }
+      }
+    }
+  SCSS
+end
+
+puts renderer.to_sass
+```
+
+Output:
+
+```sass
+nav {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li { display: inline-block; }
+
+    a {
+      display: block;
+      padding: 6px 12px;
+      text-decoration: none;
+  }
+}
+}
+```
+
+This example demonstrates:
+- Variable declaration using `v()` and usage
+- Mixins and includes
+- Custom functions
+- Nested selectors with yield
+- Various types of loops (for, each, while) for generating classes and styles
+- Media queries with dynamic breakpoints
+- Conditional statements for theming
+- Raw SASS input for complex nesting
 
 ### `to_sass` Method 📝
 
-The `to_sass` method generates SASS output from your Ruby2sass DSL. It doesn't take any arguments:
+The `to_sass` method generates SASS output from your Ruby2sass DSL:
 
 ```ruby
 sass_output = renderer.to_sass
@@ -57,13 +392,14 @@ sass_output = renderer.to_sass
 
 ### `to_css` Method 🎭
 
-The `to_css` method compiles your Ruby2sass DSL directly to CSS. It accepts two optional parameters:
+The `to_css` method compiles your Ruby2sass DSL directly to CSS:
 
 ```ruby
 css_output = renderer.to_css(include: nil, compress: false)
 ```
 
-- `include`: An array of file paths, strings, or IO objects to be included before the main SASS content. This can be used to include variables, mixins, or other SASS partials.
+Parameters:
+- `include`: An array of file paths, strings, or IO objects to be included before the main SASS content.
 - `compress`: A boolean indicating whether the output CSS should be compressed (default is false).
 
 Example with options:
@@ -74,6 +410,20 @@ css_output = renderer.to_css(
   compress: true
 )
 ```
+
+## Features 🌟
+
+Ruby2sass supports:
+- Variables with `v()` method
+- Mixins and includes
+- Custom functions
+- Nested selectors with yield for pseudo-classes and pseudo-elements
+- Loops (for, each, while) with various use cases
+- Conditionals (if-else)
+- Media queries with dynamic breakpoints
+- Keyframe animations
+- Raw SASS input for complex scenarios
+- CSS property method missing for easy property setting
 
 ## Performance 🏎️
 
