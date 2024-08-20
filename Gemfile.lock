@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ruby2sass (0.1.0)
+    ruby2sass (1.0.0)
       sassc (>= 2.4)
 
 GEM
