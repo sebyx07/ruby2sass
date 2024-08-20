@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'benchmark/ips'
+require_relative '../lib/ruby2sass'
+
+# Helper method to generate a large SASS structure using Ruby2sass DSL
+def generate_large_sass(renderer, depth = 5, breadth = 5)
+  breadth.times do |i|
+    renderer.s(".container-#{i}") do
+      width '100%'
+      max_width '1200px'
+      background_color '#f0f0f0'
+
+      if depth > 1
+        generate_large_sass(renderer, depth - 1, breadth)
+      end
+    end
+  end
+end
+
+# Function to count selectors and properties
+def count_selectors_and_properties(sass)
+  selectors = sass.scan(/\.container-\d+/).size
+  properties = sass.scan(/:\s/).size
+  [selectors, properties]
+end
+
+# Function to convert bytes to human-readable format
+def human_readable_bytes(bytes)
+  units = ['B', 'KB', 'MB', 'GB', 'TB']
+  index = 0
+  size = bytes.to_f
+
+  while size >= 1024 && index < units.length - 1
+    size /= 1024
+    index += 1
+  end
+
+  format("%.2f %s", size, units[index])
+end
+
+# Benchmark configurations
+CONFIGS = {
+  small: { depth: 3, breadth: 3 },
+  medium: { depth: 4, breadth: 4 },
+  large: { depth: 5, breadth: 5 },
+  # Uncomment the line below if you want to test with an extra large size
+  # extra_large: { depth: 6, breadth: 6 }
+}
+
+# Print structure details
+puts "Structure Details:"
+CONFIGS.each do |size, config|
+  renderer = Ruby2sass::Renderer.new do
+    generate_large_sass(self, config[:depth], config[:breadth])
+  end
+  sass = renderer.to_sass
+  css = renderer.to_css
+  selectors, properties = count_selectors_and_properties(sass)
+  puts "#{size.to_s.capitalize}:"
+  puts "  Depth: #{config[:depth]}, Breadth: #{config[:breadth]}"
+  puts "  Total Selectors: #{selectors}"
+  puts "  Total Properties: #{properties}"
+  puts "  SASS Size: #{human_readable_bytes(sass.size)}"
+  puts "  CSS Size: #{human_readable_bytes(css.size)}"
+  puts
+end
+
+# Benchmark
+Benchmark.ips do |x|
+  x.config(time: 5, warmup: 2)
+
+  CONFIGS.each do |size, config|
+    x.report("Ruby2sass #{size}") do
+      renderer = Ruby2sass::Renderer.new do
+        generate_large_sass(self, config[:depth], config[:breadth])
+      end
+      renderer.to_css
+    end
+  end
+
+  x.compare!
+end
+
+puts "\nSass Output Sample (small):"
+renderer = Ruby2sass::Renderer.new do
+  generate_large_sass(self, CONFIGS[:small][:depth], CONFIGS[:small][:breadth])
+end
+puts renderer.to_sass.lines.take(20).join
+
+puts "\nCSS Output Sample (small):"
+puts renderer.to_css.lines.take(20).join

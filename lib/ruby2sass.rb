@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'stringio'
+require 'sassc'
+
 require_relative 'ruby2sass/version'
 require_relative 'ruby2sass/css_properties'
 Dir.glob(File.join(__dir__, 'ruby2sass', '**', '*.rb')).each do |file|
