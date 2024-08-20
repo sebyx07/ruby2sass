@@ -34,7 +34,7 @@ renderer = Ruby2sass::Renderer.new do
   primary_color = v('primary-color', '#007bff')
   secondary_color = v('secondary-color', '#6c757d')
   grid_columns = v('grid-columns', 12)
-  
+
   s('body') do
     background_color primary_color
   end
@@ -67,7 +67,7 @@ renderer = Ruby2sass::Renderer.new do
 
   # Functions
   function 'darken', '$color, $amount' do
-    raw "@return darken($color, $amount);"
+    raw '@return darken($color, $amount);'
   end
 end
 
